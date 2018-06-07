@@ -2,80 +2,37 @@
 <html lang="en">
   <head>
     <base href="/">
+    <link rel="stylesheet" type="text/css" href="/css/chat.css" />
   </head>
   <body>
-    <form id="user_form">
-      <input id="user_name" type="text">
-      <input type="submit" value="Add">
-    </form>
-    <form id="chat_form">
-      <input id="chat_input" type="text">
-      <input type="submit" value="Send">
-    </form>
-    <p id="invite-link"></p>
-    <div id="chat-messages"></div>
+    <div class="chatbox-holder">
+      <div class="chatbox">
+        <div class="chatbox-top">
+          <div class="chatbox-avatar">
+            <img src="/images/avatar.png" />
+          </div>
+          <div class="chat-partner-name">
+            <span class="join-users"></span>
+            <span id="invite-link"></span>
+          </div>
+        </div>
+        <form id="user_form">
+          <div class="chat-input-holder">
+            <input type="text" class="chat-input" id="user-name" />
+            <input type="submit" value="Login" class="message-send" />
+          </div>
+        </form>
+        <form id="chat_form">
+          <div class="chat-messages"></div>
+          <div class="chat-input-holder">
+            <input type="text" class="chat-input" id="msg" />
+            <input type="submit" value="Send" class="message-send" />
+          </div>
+        </form>
+      </div>
+    </div>
     <script src="/jquery/dist/jquery.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/chat.js"></script>
   </body>
 </html>
-
-<script>
-  var socket = io.connect('http://192.168.1.114:4200');
-
-  var urlParams = new URLSearchParams(window.location.search);
-  var conversation_id = urlParams.get('id');
-
-  $("#chat_form").hide();
-  $("#invite-link").hide();
-
-  socket.on('connect', function(data) {
-     socket.emit('join', conversation_id);
-  });
-
-  socket.on('clients', function(noOfClients, client) {
-    if (client && socket.id === client.id) {
-      $("#invite-link").text("http://localhost:4200?id=" + client.id);
-      $("#invite-link").show();
-    }
-
-    if (noOfClients > 0) {
-      $("#chat_form").show();
-      $("#user_form").hide();
-    } else {
-      $("#user_form").show();
-     }
-  });
-
-  socket.on('messages', function(msg){
-    $('#chat-messages').append($('<li>').text(msg));
-  });
-
-  $('#chat_form').submit(function(e){
-    e.preventDefault();
-    var message = $('#chat_input').val();
-    if (conversation_id) {
-      socket.emit('conversation private post', {
-        room: conversation_id,
-        message: message
-      });
-    } else {
-      socket.emit('messages', {
-        room: socket.id,
-        message: message
-      });
-    }
-  });
-
-  $('#user_form').submit(function(e){
-    e.preventDefault();
-    var name = $('#user_name').val();
-    if (conversation_id) {
-      socket.emit('add join user', {
-        room: conversation_id,
-        name: name
-      });
-    } else {
-      socket.emit('add user', name);
-    }
-  });
- </script>
